@@ -1,0 +1,5 @@
+VPC
+Subnets (public/private across AZs)
+Route tables
+Internet Gateway
+Route 53 Zone

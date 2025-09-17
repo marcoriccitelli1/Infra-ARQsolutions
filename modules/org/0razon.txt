@@ -1,0 +1,5 @@
+AWS Organizations setup
+4 Organizational Units (OU-ARQ-Solutions-Core, etc.)
+Service Catalog integration
+Control Tower bootstrapping (reference only – requires manual deployment or custom setup)
+SSO + Directory assignments
