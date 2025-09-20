@@ -1,2 +1,4 @@
 .terraform/
 *.exe
+ecommerce-key-bf.pem
+ecommerce-key.pem

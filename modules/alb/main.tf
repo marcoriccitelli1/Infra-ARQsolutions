@@ -1,4 +1,5 @@
 # Application Load Balancer para alta disponibilidad
+
 resource "aws_lb" "principal" {
   name               = "${var.ecommerce}-alb"
   internal           = false
@@ -27,7 +28,7 @@ resource "aws_lb_target_group" "app" {
     unhealthy_threshold = 2
     timeout             = 5
     interval            = 30
-    path                = "/health"
+    path                = "/health"      # si tu app no expone /health, cambiá a "/"
     matcher             = "200"
     port                = "traffic-port"
     protocol            = "HTTP"
@@ -39,10 +40,25 @@ resource "aws_lb_target_group" "app" {
   }
 }
 
-# Listener HTTP (redirige a HTTPS)
-resource "aws_lb_listener" "http" {
+# ---- LISTENERS ----
+# Caso 1: SIN certificado => HTTP forward directo al TG (no redirect roto)
+resource "aws_lb_listener" "http_forward" {
+  count             = var.certificate_arn == "" ? 1 : 0
   load_balancer_arn = aws_lb.principal.arn
-  port              = "80"
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+  }
+}
+
+# Caso 2: CON certificado => HTTP redirige a HTTPS
+resource "aws_lb_listener" "http_redirect" {
+  count             = var.certificate_arn != "" ? 1 : 0
+  load_balancer_arn = aws_lb.principal.arn
+  port              = 80
   protocol          = "HTTP"
 
   default_action {
@@ -56,11 +72,11 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-# Listener HTTPS (solo si hay certificado)
+# HTTPS (solo si hay certificado) -> forward a TG
 resource "aws_lb_listener" "https" {
   count             = var.certificate_arn != "" ? 1 : 0
   load_balancer_arn = aws_lb.principal.arn
-  port              = "443"
+  port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
   certificate_arn   = var.certificate_arn
@@ -104,4 +120,3 @@ resource "aws_security_group" "alb" {
     Proyecto = var.ecommerce
   }
 }
-

@@ -14,7 +14,7 @@ availability_zones = ["us-east-1a", "us-east-1b"]
 # ── COMPUTE ──
 ami_id = "ami-0c02fb55956c7d316"  # Amazon Linux 2
 instance_type = "t3.medium"        # Más potente para Black Friday
-key_name = "your-key-name"
+key_name = "ecommerce-key-bf"
 
 # ── AUTO SCALING (OPTIMIZADO PARA BLACK FRIDAY) ──
 asg_min_size = 3          # Mínimo 3 instancias

@@ -51,19 +51,23 @@ module "alb" {
 
 # ── AUTO SCALING GROUP ──
 module "autoscaling" {
-  source                = "./modules/autoscaling"
-  ecommerce             = var.project
-  ami_id                = var.ami_id
-  instance_type         = var.instance_type
-  key_name              = var.key_name
-  private_subnet_ids    = module.network.subredes_privadas_ids
-  security_group_id     = module.security.sg_ids.ec2
-  target_group_arn      = module.alb.target_group_arn
-  alb_arn_suffix        = split("/", module.alb.alb_arn)[1]
-  min_size              = var.asg_min_size
-  max_size              = var.asg_max_size
-  desired_capacity      = var.asg_desired_capacity
+  source                 = "./modules/autoscaling"
+  ecommerce              = var.project
+  ami_id                 = var.ami_id
+  instance_type          = var.instance_type
+  key_name               = var.key_name
+  private_subnet_ids     = module.network.subredes_privadas_ids
+  security_group_id      = module.security.sg_ids.ec2
+  target_group_arn       = module.alb.target_group_arn
+
+  # ⬇️ Corrección: pasar el sufijo exacto "app/<name>/<hash>"
+  alb_arn_suffix         = module.alb.alb_arn_suffix
+
+  min_size               = var.asg_min_size
+  max_size               = var.asg_max_size
+  desired_capacity       = var.asg_desired_capacity
 }
+
 
 # ── CÓMPUTO (EC2 / Bastion) - Solo para bastion ──
 module "compute" {
@@ -168,7 +172,7 @@ module "monitoring" {
   source                     = "./modules/monitoring"
   ecommerce                  = var.project
   aws_region                = var.aws_region
-  alb_arn_suffix            = split("/", module.alb.alb_arn)[1]
+  alb_arn_suffix              = module.alb.alb_arn_suffix
   asg_name                  = module.autoscaling.autoscaling_group_name
   rds_identifier            = module.rds.db_identifier
   cloudfront_distribution_id = var.enable_cloudfront ? module.cloudfront.distribution_id : ""
