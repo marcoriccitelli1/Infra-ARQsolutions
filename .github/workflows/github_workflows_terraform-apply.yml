@@ -1,0 +1,60 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'infra/**'
+      - '.github/workflows/terraform-apply.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  TF_IN_AUTOMATION: true
+
+jobs:
+  plan-and-apply:
+    name: Plan & Apply (Prod)
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      # Configurá en Settings > Environments > production una aprobación requerida
+    defaults:
+      run:
+        working-directory: infra/environments/prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PROD_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Plan
+        run: terraform plan -input=false -out=tfplan.binary
+
+      - name: Save Plan
+        run: terraform show -no-color tfplan.binary > plan.txt
+
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-plan
+          path: infra/environments/prod/plan.txt
+
+      # El apply se ejecutará solo después de la aprobación del Environment
+      - name: Terraform Apply
+        run: terraform apply -input=false -auto-approve tfplan.binary

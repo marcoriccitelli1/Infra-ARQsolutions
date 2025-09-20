@@ -1,0 +1,75 @@
+name: Terraform CI
+
+on:
+  pull_request:
+    branches: [ "master" ]
+    paths:
+      - 'infra/**'
+      - '.github/workflows/terraform-ci.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/environments/dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+          cli_config_credentials_token: ${{ secrets.TF_CLOUD_TOKEN }} # opcional si usás Terraform Cloud
+
+      - name: Terraform Fmt
+        run: terraform fmt -check -recursive
+
+      - name: Install TFLint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          echo "$HOME/.tflint.d/plugins" # debug
+
+      - name: TFLint
+        run: tflint --recursive
+
+      - name: tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: infra/environments/dev
+          additional_args: --soft-fail=false
+
+      # Si usás AWS con OIDC (recomendado)
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -input=false -no-color -out=tfplan.binary
+
+      - name: Show Plan
+        run: terraform show -no-color tfplan.binary > plan.txt
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-dev
+          path: infra/environments/dev/plan.txt
+
+      - name: Comentar Plan en el PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+            path: infra/environments/dev/plan.txt
