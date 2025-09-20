@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Script de inicialización para instancias de ecommerce
-# Optimizado para alta disponibilidad y performance
+# Script de inicialización personalizado para instancias de ecommerce
+# Desarrollado para manejar picos de tráfico con escalado automático
+# Implementa monitoreo avanzado y health checks personalizados
 
 # Actualizar sistema
 yum update -y
@@ -49,7 +50,7 @@ cat > /var/www/${ecommerce}/index.html << EOF
     <p>Fecha: \$(date)</p>
 </body>
 </html>
-EOF
+
 
 # Configurar permisos
 chown -R nginx:nginx /var/www/${ecommerce}

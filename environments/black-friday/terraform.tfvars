@@ -1,8 +1,8 @@
-# Configuración optimizada para Black Friday
-# Este archivo contiene configuraciones específicas para manejar picos altos de tráfico
+# Configuración optimizada para eventos de alto tráfico
+# Arquitectura escalable para e-commerce durante picos de demanda
 
 # ── CONFIGURACIÓN BÁSICA ──
-project = "ecommerce-black-friday"
+project = "tienda-online-scalable"
 aws_region = "us-east-1"
 
 # ── RED ──
@@ -16,20 +16,20 @@ ami_id = "ami-0c02fb55956c7d316"  # Amazon Linux 2
 instance_type = "t3.medium"        # Más potente para Black Friday
 key_name = "ecommerce-key-bf"
 
-# ── AUTO SCALING (OPTIMIZADO PARA BLACK FRIDAY) ──
-asg_min_size = 3          # Mínimo 3 instancias
-asg_max_size = 20         # Máximo 20 instancias para picos
-asg_desired_capacity = 5  # 5 instancias por defecto
+# ── AUTO SCALING (OPTIMIZADO PARA EVENTOS DE ALTO TRÁFICO) ──
+asg_min_size = 2          # Capacidad mínima reducida para controlar costos
+asg_max_size = 6          # Límite superior ajustado para presupuesto de $10k/año
+asg_desired_capacity = 3  # Capacidad base optimizada para costo-efectividad
 
 # ── BASE DE DATOS ──
 motor = "mysql"
 version_motor = "8.0"
-instancia = "db.t3.large"  # Instancia más potente
+instancia = "db.t3.medium"  # Instancia balanceada costo/rendimiento
 usuario = "admin"
 clave = "SecurePassword123!"
 nombre_db = "ecommerce"
-almacenamiento = 100
-crear_replica = true      # Habilitar réplica para Black Friday
+almacenamiento = 50       # Almacenamiento optimizado para presupuesto
+crear_replica = false     # Deshabilitar réplica para controlar costos
 
 # ── CLOUDFRONT ──
 enable_cloudfront = true

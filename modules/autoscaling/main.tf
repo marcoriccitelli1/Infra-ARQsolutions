@@ -64,8 +64,8 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   namespace           = "AWS/EC2"
   period              = "300"
   statistic           = "Average"
-  threshold           = "70"
-  alarm_description   = "This metric monitors ec2 cpu utilization"
+  threshold           = "75"  # Umbral ajustado para evitar escalado prematuro
+  alarm_description   = "Monitoreo de CPU para escalado automático durante picos de tráfico"
   alarm_actions       = [aws_autoscaling_policy.scale_up.arn]
 
   dimensions = {
