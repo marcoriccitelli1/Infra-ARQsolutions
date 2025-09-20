@@ -1,3 +1,0 @@
-Auto Scaling Group
-Launch Template
-Application Load Balancer (ALB)

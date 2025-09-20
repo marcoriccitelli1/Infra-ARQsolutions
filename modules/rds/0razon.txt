@@ -1,3 +1,0 @@
-Amazon RDS (Multi-AZ)
-Subnet Group
-KMS encryption

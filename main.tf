@@ -23,7 +23,7 @@ module "cloudfront" {
 
   ecommerce           = var.project
   enabled             = var.enable_cloudfront
-  alb_dns_name        = var.alb_dns_name
+  alb_dns_name        = var.enable_cloudfront ? module.alb.alb_dns_name : ""
   waf_acl_arn         = var.waf_acl_arn
   certificate_arn     = var.enable_cloudfront ? module.certificado_acm[0].certificate_arn : ""
   default_root_object = var.default_root_object
@@ -39,7 +39,33 @@ module "network" {
   zonas_az          = var.availability_zones
 }
 
-# ── CÓMPUTO (EC2 / Bastion) ──
+# ── APPLICATION LOAD BALANCER ──
+module "alb" {
+  source               = "./modules/alb"
+  ecommerce            = var.project
+  vpc_id               = module.network.vpc_id
+  public_subnet_ids    = module.network.subredes_publicas_ids
+  certificate_arn      = var.enable_cloudfront ? module.certificado_acm[0].certificate_arn : ""
+  alb_security_group_id = null  # El módulo creará su propio security group
+}
+
+# ── AUTO SCALING GROUP ──
+module "autoscaling" {
+  source                = "./modules/autoscaling"
+  ecommerce             = var.project
+  ami_id                = var.ami_id
+  instance_type         = var.instance_type
+  key_name              = var.key_name
+  private_subnet_ids    = module.network.subredes_privadas_ids
+  security_group_id     = module.security.sg_ids.ec2
+  target_group_arn      = module.alb.target_group_arn
+  alb_arn_suffix        = split("/", module.alb.alb_arn)[1]
+  min_size              = var.asg_min_size
+  max_size              = var.asg_max_size
+  desired_capacity      = var.asg_desired_capacity
+}
+
+# ── CÓMPUTO (EC2 / Bastion) - Solo para bastion ──
 module "compute" {
   source             = "./modules/compute"
   ecommerce          = var.project
@@ -135,4 +161,16 @@ module "iam_bi_analyst" {
   role_name          = "BIAnalystRole"
   trusted_account_id = var.bi_trusted_account_id
   policy_arn         = "arn:aws:iam::aws:policy/AthenaFullAccess"
+}
+
+# ── MONITOREO AVANZADO PARA BLACK FRIDAY ──
+module "monitoring" {
+  source                     = "./modules/monitoring"
+  ecommerce                  = var.project
+  aws_region                = var.aws_region
+  alb_arn_suffix            = split("/", module.alb.alb_arn)[1]
+  asg_name                  = module.autoscaling.autoscaling_group_name
+  rds_identifier            = module.rds.db_identifier
+  cloudfront_distribution_id = var.enable_cloudfront ? module.cloudfront.distribution_id : ""
+  alert_email               = var.alert_email
 }

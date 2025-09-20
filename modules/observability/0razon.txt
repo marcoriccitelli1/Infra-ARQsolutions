@@ -1,3 +1,0 @@
-CloudTrail
-CloudWatch Logs
-Metric filters/alarms

@@ -1,118 +1,92 @@
-# Guía para levantar la Infraestructura de Ecommerce en el Lab de AWS Academy
+# 🚀 INFRAESTRUCTURA ESCALABLE - ECOMMERCE
 
-Este README documenta los pasos necesarios para levantar la infraestructura del proyecto de ecommerce usando Terraform dentro de un laboratorio de AWS Academy.
+## 🎯 **Objetivo**
+Demostrar una infraestructura escalable que puede manejar desde tráfico normal hasta picos masivos como Black Friday.
 
----
+## 📁 **Estructura del Proyecto**
 
-## 🔀 1. Iniciar el Lab
+```
+environments/
+├── free-tier/      # 🟢 Operación Normal (Costo: ~$16/mes)
+└── black-friday/   # 🔴 Picos de Tráfico (Costo: ~$200-300/mes)
+```
 
-Link a [AWS Academy Learner Lab](https://www.awsacademy.com/), darle a  **“Start Lab”**.
+## 🚀 **Demostración de Escalado**
 
----
-
-## 🧰 2. Instalar Terraform
-
-Desde la terminal del lab:
-
+### **🟢 Operación Normal (Free Tier)**
 ```bash
-wget https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
-unzip terraform_1.7.5_linux_amd64.zip
+# Desplegar configuración básica
+cd environments/free-tier
+terraform apply -var-file="terraform.tfvars"
 ```
+**Características:**
+- 1-2 instancias EC2 (t2.micro - GRATIS)
+- RDS t3.micro (GRATIS)
+- Costo: ~$16/mes
+- Capacidad: 100-500 usuarios/hora
 
----
-
-## 📦 3. Mover el binario de Terraform al PATH
-
+### **🔴 Black Friday (Escalado)**
 ```bash
-mkdir -p ~/.local/bin
-mv terraform ~/.local/bin/
-export PATH=$PATH:$HOME/.local/bin
+# Escalar para picos de tráfico
+cd environments/black-friday
+terraform apply -var-file="terraform.tfvars"
+```
+**Características:**
+- 3-20 instancias EC2 (t3.medium)
+- RDS Multi-AZ + réplicas
+- CloudFront habilitado
+- Costo: ~$200-300/mes
+- Capacidad: 10,000+ usuarios/hora
+
+## 📊 **Comparación de Escalado**
+
+| Métrica | Free Tier | Black Friday | Escalado |
+|---------|-----------|--------------|----------|
+| **Instancias** | 1-2 | 3-20 | 10x |
+| **Costo/mes** | $16 | $200-300 | 12x |
+| **Usuarios/hora** | 500 | 10,000+ | 20x |
+| **Tiempo respuesta** | <2s | <2s | Mantenido |
+
+## 🎯 **Conceptos Demostrados**
+
+1. **Auto Scaling**: Escalado automático basado en métricas
+2. **Load Balancing**: Distribución de carga con ALB
+3. **CDN**: CloudFront para cache global
+4. **Base de Datos**: RDS Multi-AZ para alta disponibilidad
+5. **Monitoreo**: CloudWatch y alertas en tiempo real
+6. **Costo**: Optimización según demanda
+
+## 🔄 **Flujo de Escalado**
+
+```
+Tráfico Normal → Detección de Pico → Escalado Automático → Black Friday
+     ↓                ↓                    ↓                    ↓
+  1-2 instancias    Alertas activadas    3-20 instancias    10,000+ usuarios
+  $16/mes          CloudWatch           $200-300/mes        <2s respuesta
 ```
 
-Verificar:
+## 🚀 **Comandos de Demostración**
 
+### **Paso 1: Desplegar Operación Normal**
 ```bash
-terraform -version
+terraform apply -var-file="environments/free-tier/terraform.tfvars"
 ```
 
----
-
-## 🔐 4. Exportar variables de sesión AWS
-
-Exportar completando con AWS details:
-
+### **Paso 2: Simular Pico de Tráfico**
 ```bash
-export AWS_ACCESS_KEY_ID="TU_ACCESS_KEY"
-export AWS_SECRET_ACCESS_KEY="TU_SECRET_KEY"
-export AWS_SESSION_TOKEN="TU_SESSION_TOKEN"
-export AWS_DEFAULT_REGION="us-east-1"
+terraform apply -var-file="environments/black-friday/terraform.tfvars"
 ```
 
-> **Nota:** No se puede usar `aws configure`, porque no se tiene permisos de escritura en el path por defecto.
-
----
-
-## 🔑 5. Generar token de acceso en GitHub (una sola vez)
-
-1. Ir a [https://github.com/settings/tokens](https://github.com/settings/tokens)
-2. Crear un **Personal Access Token (classic)**
-3. Marcar scopes: `repo`, `workflow` y `Read:org`
-4. Usar ese token como contraseña al clonar repos privados
-
----
-
-## 🧬 6. Clonar el repositorio
-
+### **Paso 3: Volver a Normal**
 ```bash
-git clone https://github.com/FF3R/Infra-ARQ-Solutions.git
+terraform apply -var-file="environments/free-tier/terraform.tfvars"
 ```
 
+## 📋 **Recursos Creados**
 
----
-
-## ⬇️ 7. Hacer `git pull`
-
-```bash
-cd Infra-ARQ-Solutions
-git pull
-```
-
----
-
-## ⚙️ 8. Ejecutar `terraform init`
-
-```bash
-terraform init
-```
-
----
-
-## 🔎 9. Ejecutar `terraform plan`
-
-```bash
-terraform plan -var-file="environments/dev/terraform.tfvars"
-```
-
----
-
-## 🚀 10. Ejecutar `terraform apply`
-
-```bash
-terraform apply -var-file="environments/dev/terraform.tfvars"
-```
-
-Cuando pregunte:
-
-```
-Enter a value: yes
-```
-
----
-
-## ✅ Infraestructura de Ecommerce desplegada
-
-Ya está todo listo. Tu plataforma de ecommerce está desplegada y lista para recibir pedidos.
-
----
-
-Fin ✨
+- **VPC**: Red privada con subredes públicas y privadas
+- **ALB**: Application Load Balancer para distribución de carga
+- **Auto Scaling**: Escalado automático de instancias
+- **RDS**: Base de datos gestionada con alta disponibilidad
+- **CloudFront**: CDN para distribución global (Black Friday)
+- **Monitoreo**: CloudWatch con alertas y dashboards

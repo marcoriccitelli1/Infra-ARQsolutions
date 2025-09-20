@@ -1,3 +1,0 @@
-Security Groups
-AWS WAF (Web ACL)
-KMS Keys

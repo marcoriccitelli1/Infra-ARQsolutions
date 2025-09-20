@@ -169,3 +169,29 @@ variable "enable_iam_roles" {
   description = "Si es true, Terraform crea los roles; si es false, salta estos módulos"
   default     = false    
 }
+
+# ── VARIABLES PARA AUTO SCALING ──
+variable "asg_min_size" {
+  description = "Número mínimo de instancias en el Auto Scaling Group"
+  type        = number
+  default     = 2
+}
+
+variable "asg_max_size" {
+  description = "Número máximo de instancias en el Auto Scaling Group"
+  type        = number
+  default     = 10
+}
+
+variable "asg_desired_capacity" {
+  description = "Número deseado de instancias en el Auto Scaling Group"
+  type        = number
+  default     = 2
+}
+
+# ── VARIABLES PARA MONITOREO ──
+variable "alert_email" {
+  description = "Email para alertas de monitoreo"
+  type        = string
+  default     = ""
+}

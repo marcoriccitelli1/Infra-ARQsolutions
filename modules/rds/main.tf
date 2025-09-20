@@ -8,10 +8,11 @@ resource "aws_db_subnet_group" "subnet_group" {
   }
 }
 
-// Instancia RDS principal con Multi-AZ
+// Instancia RDS principal con Multi-AZ y optimizaciones para alta carga
 resource "aws_db_instance" "principal" {
   identifier              = "${var.ecommerce}-db"
   allocated_storage       = var.almacenamiento
+  max_allocated_storage   = var.almacenamiento * 3  # Auto-scaling de storage
   engine                  = var.motor
   engine_version          = var.version_motor
   instance_class          = var.instancia
@@ -26,10 +27,46 @@ resource "aws_db_instance" "principal" {
   kms_key_id              = var.kms_key_arn
   skip_final_snapshot     = true
   deletion_protection     = false
+  
+  # Optimizaciones para alta carga
+  backup_retention_period = 7
+  backup_window          = "03:00-04:00"
+  maintenance_window     = "sun:04:00-sun:05:00"
+  
+  # Performance Insights para monitoreo (deshabilitado para free tier)
+  performance_insights_enabled = false
+  performance_insights_retention_period = 0
+  
+  # Configuraciones de performance
+  monitoring_interval = 60
+  monitoring_role_arn = aws_iam_role.rds_enhanced_monitoring.arn
 
   tags = {
     Proyecto = var.ecommerce
   }
+}
+
+# IAM Role para Enhanced Monitoring
+resource "aws_iam_role" "rds_enhanced_monitoring" {
+  name = "${var.ecommerce}-rds-monitoring-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "monitoring.rds.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "rds_enhanced_monitoring" {
+  role       = aws_iam_role.rds_enhanced_monitoring.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 }
 
 // Read Replica opcional para redundancia y lectura
