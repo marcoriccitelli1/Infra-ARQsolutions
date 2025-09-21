@@ -93,7 +93,7 @@ module "security" {
 module "observability" {
   source               = "./modules/observability"
   trail_name           = "ecommerce-trail"
-  s3_bucket            = "ecommerce-logs-bucket-679835925523"
+  s3_bucket            = "ecommerce-logs-bucket-679835925524"
   config_role_name     = "ecommerce-config-role"
   config_recorder_name = "ecommerce-config-recorder"
   config_channel_name  = "ecommerce-config-channel"
