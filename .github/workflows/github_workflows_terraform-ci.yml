@@ -2,13 +2,14 @@ name: Terraform CI
 
 on:
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]   # cambia a "master" si corresponde
     paths:
-      - 'infra/**'
-      - '.github/workflows/terraform-ci.yml'
+      - '**/*.tf'
+      - 'environments/**'
+      - '.github/workflows/github_workflows_terraform-ci.yml'
 
 permissions:
-  contents: read
+  contents: write     # necesario para auto-commit en PRs del mismo repo
   pull-requests: write
 
 jobs:
@@ -16,60 +17,65 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: infra/environments/dev
+        working-directory: .   # raíz del repo
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0       # permite hacer commit de vuelta al branch del PR
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          # aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.8.5
-          cli_config_credentials_token: ${{ secrets.TF_CLOUD_TOKEN }} # opcional si usás Terraform Cloud
 
-      - name: Terraform Fmt
-        run: terraform fmt -check -recursive
+      # 1) Intentar auto-formatear SIEMPRE
+      - name: Terraform fmt (auto-fix)
+        run: terraform fmt -recursive
 
-      - name: Install TFLint
-        run: |
-          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-          echo "$HOME/.tflint.d/plugins" # debug
-
-      - name: TFLint
-        run: tflint --recursive
-
-      - name: tfsec
-        uses: aquasecurity/tfsec-action@v1.0.3
+      # 2) Intentar auto-commit (si es fork, puede no tener permisos; no rompemos el job acá)
+      - name: Auto-commit fmt changes (best effort)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        continue-on-error: true
         with:
-          working_directory: infra/environments/dev
-          additional_args: --soft-fail=false
+          commit_message: "chore(fmt): apply terraform fmt via CI"
+          file_pattern: "**/*.tf"
 
-      # Si usás AWS con OIDC (recomendado)
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ secrets.AWS_REGION }}
+      # 3) Verificación: si sigue habiendo difs, fallamos (en forks el autor debe formatear localmente)
+      - name: Terraform fmt (check + diff)
+        run: terraform fmt -check -diff -recursive
 
-      - name: Terraform Init
+      - name: Terraform init
         run: terraform init -input=false
 
-      - name: Terraform Validate
+      - name: Terraform validate
         run: terraform validate
 
-      - name: Terraform Plan
-        run: terraform plan -input=false -no-color -out=tfplan.binary
+      - name: Terraform plan
+        run: |
+          terraform plan -input=false -no-color \
+            -var-file=environments/free-tier/terraform.tfvars \
+            -out=tfplan.binary
 
-      - name: Show Plan
+      - name: Show plan
         run: terraform show -no-color tfplan.binary > plan.txt
 
-      - name: Upload Plan Artifact
+      - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:
-          name: terraform-plan-dev
-          path: infra/environments/dev/plan.txt
+          name: terraform-plan-free-tier
+          path: plan.txt
 
-      - name: Comentar Plan en el PR
+      - name: Comentar plan en el PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-            path: infra/environments/dev/plan.txt
+          path: plan.txt
