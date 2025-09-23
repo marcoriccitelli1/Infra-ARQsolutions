@@ -36,7 +36,7 @@ variable "subredes_privadas" {
 variable "zonas_az" {
   description = "Lista de zonas de disponibilidad"
   type        = list(string)
-  
+
   validation {
     condition     = length(var.zonas_az) == 2
     error_message = "2 AZ."

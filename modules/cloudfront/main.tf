@@ -9,11 +9,11 @@ terraform {
 
 // CloudFront que usa el ALB como origen
 resource "aws_cloudfront_distribution" "principal" {
-  count                = var.enabled ? 1 : 0
-  enabled              = true
-  is_ipv6_enabled      = true
-  comment              = "Distribucion principal para ${var.ecommerce}"
-  default_root_object  = var.default_root_object
+  count               = var.enabled ? 1 : 0
+  enabled             = true
+  is_ipv6_enabled     = true
+  comment             = "Distribucion principal para ${var.ecommerce}"
+  default_root_object = var.default_root_object
 
   origin {
     domain_name = var.alb_dns_name
@@ -51,10 +51,10 @@ resource "aws_cloudfront_distribution" "principal" {
 
   # Cache behavior para assets estáticos (CSS, JS, imágenes)
   ordered_cache_behavior {
-    path_pattern     = "/assets/*"
-    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "alb-${var.ecommerce}"
+    path_pattern           = "/assets/*"
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "alb-${var.ecommerce}"
     viewer_protocol_policy = "redirect-to-https"
 
     forwarded_values {
@@ -73,10 +73,10 @@ resource "aws_cloudfront_distribution" "principal" {
 
   # Cache behavior para API calls (menos agresivo)
   ordered_cache_behavior {
-    path_pattern     = "/api/*"
-    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "alb-${var.ecommerce}"
+    path_pattern           = "/api/*"
+    allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "alb-${var.ecommerce}"
     viewer_protocol_policy = "redirect-to-https"
 
     forwarded_values {
@@ -88,8 +88,8 @@ resource "aws_cloudfront_distribution" "principal" {
     }
 
     min_ttl     = 0
-    default_ttl = 0      # No cache para API por defecto
-    max_ttl     = 3600   # Máximo 1 hora si se cachea
+    default_ttl = 0    # No cache para API por defecto
+    max_ttl     = 3600 # Máximo 1 hora si se cachea
     compress    = true
   }
 
