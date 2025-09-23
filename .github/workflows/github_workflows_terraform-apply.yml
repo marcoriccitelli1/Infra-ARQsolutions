@@ -2,7 +2,7 @@ name: Terraform Apply
 
 on:
   push:
-    branches: [ "main" ]   # cambia a "master" si corresponde
+    branches: [ "master" ]   # cambia a "master" si corresponde
     paths:
       - '**/*.tf'
       - 'environments/**'

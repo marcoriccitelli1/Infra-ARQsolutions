@@ -28,7 +28,7 @@ resource "aws_lb_target_group" "app" {
     unhealthy_threshold = 2
     timeout             = 5
     interval            = 30
-    path                = "/health"      # si tu app no expone /health, cambiá a "/"
+    path                = "/health" # si tu app no expone /health, cambiá a "/"
     matcher             = "200"
     port                = "traffic-port"
     protocol            = "HTTP"
