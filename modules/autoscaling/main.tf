@@ -27,10 +27,10 @@ resource "aws_launch_template" "app" {
 
 # Auto Scaling Group
 resource "aws_autoscaling_group" "app" {
-  name                = "${var.ecommerce}-asg"
-  vpc_zone_identifier = var.private_subnet_ids
-  target_group_arns   = [var.target_group_arn]
-  health_check_type   = "ELB"
+  name                      = "${var.ecommerce}-asg"
+  vpc_zone_identifier       = var.private_subnet_ids
+  target_group_arns         = [var.target_group_arn]
+  health_check_type         = "ELB"
   health_check_grace_period = 300
 
   min_size         = var.min_size
@@ -64,7 +64,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   namespace           = "AWS/EC2"
   period              = "300"
   statistic           = "Average"
-  threshold           = "75"  # Umbral ajustado para evitar escalado prematuro
+  threshold           = "75" # Umbral ajustado para evitar escalado prematuro
   alarm_description   = "Monitoreo de CPU para escalado automático durante picos de tráfico"
   alarm_actions       = [aws_autoscaling_policy.scale_up.arn]
 

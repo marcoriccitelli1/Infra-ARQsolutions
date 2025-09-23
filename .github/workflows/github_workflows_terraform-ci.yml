@@ -2,7 +2,7 @@ name: Terraform CI
 
 on:
   pull_request:
-    branches: [ "main" ]   # cambia a "master" si corresponde
+    branches: [ "master" ]   # cambia a "master" si corresponde
     paths:
       - '**/*.tf'
       - 'environments/**'

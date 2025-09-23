@@ -79,7 +79,7 @@ resource "aws_cloudwatch_dashboard" "black_friday" {
             ["AWS/CloudFront", "Requests", "DistributionId", var.cloudfront_distribution_id],
             [".", "BytesDownloaded", ".", "."],
             [".", "CacheHitRate", ".", "."]
-          ] : [
+            ] : [
             ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", var.alb_arn_suffix],
             [".", "TargetResponseTime", ".", "."]
           ]
