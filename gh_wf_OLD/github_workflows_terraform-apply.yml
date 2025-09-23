@@ -1,0 +1,68 @@
+name: Terraform Apply
+
+on:
+  push:
+    branches: [ "main" ]   # cambia a "master" si corresponde
+    paths:
+      - '**/*.tf'
+      - 'environments/**'
+      - '.github/workflows/github_workflows_terraform-apply.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  TF_IN_AUTOMATION: true
+
+concurrency:
+  group: tf-apply-free-tier
+  cancel-in-progress: false
+
+jobs:
+  plan-and-apply:
+    name: Plan & Apply (free-tier)
+    runs-on: ubuntu-latest
+    # Si querés aprobación previa al apply, descomentá:
+    # environment:
+    #   name: production
+    defaults:
+      run:
+        working-directory: .   # raíz del repo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          # aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      - name: Terraform plan
+        run: |
+          terraform plan -input=false \
+            -var-file=environments/free-tier/terraform.tfvars \
+            -out=tfplan.binary
+
+      - name: Save plan (legible)
+        run: terraform show -no-color tfplan.binary > plan.txt
+
+      - name: Upload plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: free-tier-plan
+          path: plan.txt
+
+      - name: Terraform apply
+        run: terraform apply -input=false -auto-approve tfplan.binary
