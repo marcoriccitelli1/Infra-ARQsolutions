@@ -90,3 +90,4 @@ terraform apply -var-file="environments/free-tier/terraform.tfvars"
 - **RDS**: Base de datos gestionada con alta disponibilidad
 - **CloudFront**: CDN para distribución global (Black Friday)
 - **Monitoreo**: CloudWatch con alertas y dashboards
+###
