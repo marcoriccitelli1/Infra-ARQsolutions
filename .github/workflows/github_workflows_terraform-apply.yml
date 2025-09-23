@@ -2,15 +2,16 @@ name: Terraform Apply
 
 on:
   push:
-    branches: [ "master" ]   # cambia a "master" si corresponde
+    branches: ["main"]  # cambia a "master" si corresponde
     paths:
-      - '**/*.tf'
-      - 'environments/**'
-      - '.github/workflows/github_workflows_terraform-apply.yml'
+      - "**/*.tf"
+      - "environments/**"
+      - ".github/workflows/github_workflows_terraform-apply.yml"
   workflow_dispatch: {}
 
 permissions:
   contents: read
+  id-token: write   # opcional si luego migrás a OIDC
 
 env:
   TF_IN_AUTOMATION: true
@@ -23,9 +24,6 @@ jobs:
   plan-and-apply:
     name: Plan & Apply (free-tier)
     runs-on: ubuntu-latest
-    # Si querés aprobación previa al apply, descomentá:
-    # environment:
-    #   name: production
     defaults:
       run:
         working-directory: .   # raíz del repo
@@ -36,10 +34,10 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: "AKIA2CX35MSCBDLT5Q7R"
-          aws-secret-access-key: "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"
-          aws-region: "us-east-1"
-          # aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          # aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # si usás credenciales temporales
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
