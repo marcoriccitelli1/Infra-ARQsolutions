@@ -2,14 +2,14 @@ name: Terraform CI
 
 on:
   pull_request:
-    branches: [ "master" ]   # cambia a "master" si corresponde
+    branches: ["main"]  # cambia a "master" si corresponde
     paths:
-      - '**/*.tf'
-      - 'environments/**'
-      - '.github/workflows/github_workflows_terraform-ci.yml'
+      - "**/*.tf"
+      - "environments/**"
+      - ".github/workflows/github_workflows_terraform-ci.yml"
 
 permissions:
-  contents: write     # necesario para auto-commit en PRs del mismo repo
+  contents: write      # necesario para auto-commit en PRs del mismo repo
   pull-requests: write
 
 jobs:
@@ -23,15 +23,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0       # permite hacer commit de vuelta al branch del PR
+          fetch-depth: 0       # permite auto-commit al branch del PR
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: "AKIA2CX35MSCBDLT5Q7R"
-          aws-secret-access-key: "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"
-          aws-region: "us-east-1"
-          # aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          # aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # si aplica
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -42,7 +42,7 @@ jobs:
       - name: Terraform fmt (auto-fix)
         run: terraform fmt -recursive
 
-      # 2) Intentar auto-commit (si es fork, puede no tener permisos; no rompemos el job acá)
+      # 2) Intentar auto-commit (si es fork, puede fallar; no rompemos el job)
       - name: Auto-commit fmt changes (best effort)
         uses: stefanzweifel/git-auto-commit-action@v5
         continue-on-error: true
@@ -50,7 +50,7 @@ jobs:
           commit_message: "chore(fmt): apply terraform fmt via CI"
           file_pattern: "**/*.tf"
 
-      # 3) Verificación: si sigue habiendo difs, fallamos (en forks el autor debe formatear localmente)
+      # 3) Verificación: si sigue habiendo difs, fallamos
       - name: Terraform fmt (check + diff)
         run: terraform fmt -check -diff -recursive
 
